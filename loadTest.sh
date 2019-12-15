@@ -14,11 +14,11 @@
 # $Id: $
 
 URL=${1}
-NUM=${2}
+SIMULT_REQ=${2}
 START=$(date +%s);
 LOG=/tmp/loadTest.log
 WAIT_TIME=1
-COUNT=0
+ITERATIONS=0
 TOTAL=0
 
 #==================================================================#
@@ -33,9 +33,9 @@ usage(){
 
 function trap_cmd {
         echo "You hit control+C .... Stopping script."
-        TOTAL=$((NUM*COUNT))
-        echo "Total iterations=$COUNT"
-        echo "Total URL hits=$TOTAL (approximate)"
+        TOTAL=$((SIMULT_REQ*ITERATIONS))
+        echo "Total iterations=${ITERATIONS}"
+        echo "Total URL hits=${TOTAL} (approximate)"
         exit 0
 }
 
@@ -45,6 +45,14 @@ function trap_cmd {
 
 if [ $# -lt 2 ]
 then
+        usage
+        exit 1
+fi
+
+#Integer check
+if ! [[ "${SIMULT_REQ}" =~ ^[0-9]+$ ]]
+    then
+        echo "!!!!!!${SIMULT_REQ} is not an integer...try again.!!!!!!"
         usage
         exit 1
 fi
@@ -60,18 +68,18 @@ hit_url () {
 }
 
 echo "#########################################################################"
-echo "Begin run : URL=${URL}, Wait time=${WAIT_TIME}, Concurrent requests=${NUM}" | tee -a ${LOG}
+echo "Begin run : URL=${URL}, Wait time=${WAIT_TIME}, Concurrent requests=${SIMULT_REQ}" | tee -a ${LOG}
 echo "#########################################################################"
 
 while true
 do
-  COUNT=$((COUNT + 1))
-  echo "Iteration=$COUNT"
+  ITERATIONS=$((ITERATIONS + 1))
+  echo "Iteration=${ITERATIONS}"
   sleep ${WAIT_TIME}
 
-  for i in `seq 1 ${NUM}`
+  for i in `seq 1 ${SIMULT_REQ}`
   do
-    echo -n `date '+%Y-%m-%d-%M%S'` " ${i} : ${NUM} " >> ${LOG} 
+    echo -n `date '+%Y-%m-%d-%M%S'` " ${i} : ${SIMULT_REQ} " >> ${LOG} 
     hit_url ${URL} &
     echo "" >> ${LOG}
   done
